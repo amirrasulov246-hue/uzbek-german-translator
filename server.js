@@ -16,29 +16,28 @@ app.post("/api/translate", async (req, res) => {
       });
     }
 
-    const url =
-      "https://api.mymemory.translated.net/get?q=" +
-      encodeURIComponent(text) +
-      "&langpair=uz|de";
+    const query = encodeURIComponent(text);
 
-    const response = await fetch(url);
+    const response = await fetch(
+      `https://lingva.ml/api/v1/uz/de/${query}`
+    );
+
     const data = await response.json();
 
-    if (!response.ok) {
-      console.error(data);
+    console.log("Lingva:", data);
+
+    if (!response.ok || data.error) {
       return res.status(500).json({
         error: "Tarjima API xatosi"
       });
     }
 
-    const translation = data.responseData?.translatedText;
-
     res.json({
-      translation: translation || "Tarjima topilmadi"
+      translation: data.translation || "Tarjima topilmadi"
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("ERROR:", error);
 
     res.status(500).json({
       error: "Tarjima qilishda xatolik yuz berdi"
