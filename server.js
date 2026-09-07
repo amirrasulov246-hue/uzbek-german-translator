@@ -16,43 +16,22 @@ app.post("/api/translate", async (req, res) => {
       });
     }
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=" +
-        process.env.GEMINI_API_KEY,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Translate this Uzbek text into natural German.
-Then briefly explain difficult grammar in Uzbek.
+    const url =
+      "https://api.mymemory.translated.net/get?q=" +
+      encodeURIComponent(text) +
+      "&langpair=uz|de";
 
-Uzbek text:
-${text}`
-                }
-              ]
-            }
-          ]
-        })
-      }
-    );
-
+    const response = await fetch(url);
     const data = await response.json();
 
     if (!response.ok) {
       console.error(data);
       return res.status(500).json({
-        error: "Gemini API xatosi"
+        error: "Tarjima API xatosi"
       });
     }
 
-    const translation =
-      data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const translation = data.responseData?.translatedText;
 
     res.json({
       translation: translation || "Tarjima topilmadi"
@@ -60,6 +39,7 @@ ${text}`
 
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       error: "Tarjima qilishda xatolik yuz berdi"
     });
@@ -69,4 +49,3 @@ ${text}`
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-      
