@@ -1,14 +1,7 @@
-require("dotenv").config();
-
 const express = require("express");
-const OpenAI = require("openai");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
 
 app.use(express.json());
 app.use(express.static("public"));
@@ -23,17 +16,46 @@ app.post("/api/translate", async (req, res) => {
       });
     }
 
-    const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL,
-      input: `Translate this text into natural German. 
-Explain difficult grammar briefly in Uzbek.
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
+        process.env.GEMINI_API_KEY,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Translate this Uzbek text into natural German.
+Then briefly explain difficult grammar in Uzbek.
 
-Text:
+Uzbek text:
 ${text}`
-    });
+                }
+              ]
+            }
+          ]
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(data);
+      return res.status(500).json({
+        error: "Gemini API xatosi"
+      });
+    }
+
+    const translation =
+      data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     res.json({
-      translation: response.output_text
+      translation: translation || "Tarjima topilmadi"
     });
 
   } catch (error) {
@@ -47,3 +69,4 @@ ${text}`
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+      
