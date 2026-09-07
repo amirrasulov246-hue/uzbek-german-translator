@@ -16,24 +16,44 @@ app.post("/api/translate", async (req, res) => {
       });
     }
 
-    const query = encodeURIComponent(text.trim());
+    const url =
+      "https://translate.googleapis.com/translate_a/single" +
+      "?client=gtx" +
+      "&sl=uz" +
+      "&tl=de" +
+      "&dt=t" +
+      "&q=" +
+      encodeURIComponent(text.trim());
 
-    const response = await fetch(
-      `https://translate.dr460nf1r3.org/api/v1/uz/de/${query}`
-    );
+    const response = await fetch(url);
 
-    const data = await response.json();
-
-    console.log("Lingva response:", data);
-
-    if (!response.ok || !data.translation) {
+    if (!response.ok) {
+      console.error("Google Translate status:", response.status);
       return res.status(500).json({
         error: "Tarjima API xatosi"
       });
     }
 
+    const data = await response.json();
+
+    let translation = "";
+
+    if (Array.isArray(data[0])) {
+      for (const part of data[0]) {
+        if (part && part[0]) {
+          translation += part[0];
+        }
+      }
+    }
+
+    if (!translation) {
+      return res.status(500).json({
+        error: "Tarjima topilmadi"
+      });
+    }
+
     res.json({
-      translation: data.translation
+      translation: translation
     });
 
   } catch (error) {
