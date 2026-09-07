@@ -10,30 +10,30 @@ app.post("/api/translate", async (req, res) => {
   try {
     const { text } = req.body;
 
-    if (!text) {
+    if (!text || !text.trim()) {
       return res.status(400).json({
         error: "Matn kiriting"
       });
     }
 
-    const query = encodeURIComponent(text);
+    const query = encodeURIComponent(text.trim());
 
     const response = await fetch(
-      `https://lingva.ml/api/v1/uz/de/${query}`
+      `https://translate.dr460nf1r3.org/api/v1/uz/de/${query}`
     );
 
     const data = await response.json();
 
-    console.log("Lingva:", data);
+    console.log("Lingva response:", data);
 
-    if (!response.ok || data.error) {
+    if (!response.ok || !data.translation) {
       return res.status(500).json({
         error: "Tarjima API xatosi"
       });
     }
 
     res.json({
-      translation: data.translation || "Tarjima topilmadi"
+      translation: data.translation
     });
 
   } catch (error) {
